@@ -7,7 +7,7 @@ export const requireUser = (
 ) => {
   const user = res.locals.user
   if (!user) {
-    return res.send(401).json({
+    return res.status(401).json({
       status: 'failed',
       message: 'Unauthorized'
     })
