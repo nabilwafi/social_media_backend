@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "npx tsc -w",
+    "start:prod": "node ./build/server.js",
     "dev": "npx nodemon",
     "build": "tsc",
     "format": "prettier --write .",
