@@ -4,6 +4,9 @@
 #Testing
 /coverage
 
+#Environment
+.env
+
 #Production
 /build
 /dist
