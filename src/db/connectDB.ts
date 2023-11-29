@@ -22,6 +22,14 @@ const db = new Sequelize({
   logging: false
 })
 
+db.authenticate()
+  .then(() => {
+    logger.info('Successfully Connected DB')
+  })
+  .catch((err) => {
+    logger.error(err)
+  })
+
 db.sync()
   .then(() => {
     logger.info('Successfully Sync DB')

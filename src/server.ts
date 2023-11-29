@@ -4,6 +4,7 @@ import logger from './utils/logger'
 import routes from './routes'
 import { ALLOWED_ORIGIN, PORT_SERVER } from './utils/constant'
 
+import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import deserializeToken from './middlewares/deserializeToken'
 
@@ -19,6 +20,7 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   res.setHeader('Access-Control-Allow-Headers', '*')
   next()
 })
+app.use(cookieParser())
 app.use(
   cors({
     credentials: true,

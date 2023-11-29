@@ -22,6 +22,7 @@ export interface UserAttributes {
   photo_profile: string
   email: string
   password?: string
+  refreshToken?: string | null
   createdAt?: Date
   updatedAt?: Date
 }
@@ -96,6 +97,12 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
     allowNull: false
   })
   declare password: string
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true
+  })
+  declare refreshToken: string
 
   @CreatedAt
   declare createdAt: Date
