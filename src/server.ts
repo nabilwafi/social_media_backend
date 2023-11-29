@@ -9,6 +9,7 @@ import cors from 'cors'
 import deserializeToken from './middlewares/deserializeToken'
 
 import './db/connectDB'
+import path from 'path'
 
 const app: Application = express()
 
@@ -21,6 +22,7 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   next()
 })
 app.use(cookieParser())
+app.use('/public', express.static(path.join(__dirname, '/public')))
 app.use(
   cors({
     credentials: true,

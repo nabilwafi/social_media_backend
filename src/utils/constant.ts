@@ -1,4 +1,5 @@
 import dotenv from 'dotenv'
+import path from 'path'
 
 dotenv.config()
 
@@ -14,6 +15,8 @@ const {
   ALLOWED_ORIGIN
 } = process.env
 
+const ROOT_PATH = path.resolve(__dirname, '..')
+
 export {
   PORT_SERVER,
   DB_NAME,
@@ -23,5 +26,6 @@ export {
   DB_DIALECT,
   DB_PORT,
   JWT_SECRET_KEY,
-  ALLOWED_ORIGIN
+  ALLOWED_ORIGIN,
+  ROOT_PATH
 }

@@ -5,6 +5,10 @@ import { comparedPassword, hashedPassword } from '../utils/bcrypt'
 import User, { UserAttributes } from '../db/models/user.model'
 import { LoginUserValidation } from '../validations/login.validation'
 import { signJWT, verifyJWT } from '../utils/jwt'
+import { saveImage } from '../utils/imageSaver'
+import { editProfileValidation } from '../validations/editProfile.validation'
+import { unlinkImage } from '../utils/imageUnlink'
+import { changePasswordValidation } from '../validations/changePassword.validation'
 
 export const registerUser = (async (req: Request, res: Response) => {
   const { error, value } = RegisterUserValidation(req.body)
@@ -16,7 +20,19 @@ export const registerUser = (async (req: Request, res: Response) => {
     })
   }
 
+  if (!req.file) {
+    logger.error('ERR: register - route = file not found')
+    res.status(403).json({
+      status: 'failed',
+      message: 'image is require'
+    })
+  }
+
   try {
+    const filename = saveImage(req.file?.path!, req.file?.filename!)
+
+    value.photo_profile = filename
+
     const passwordHashed = await hashedPassword(value.password)
 
     value.password = passwordHashed
@@ -59,7 +75,7 @@ export const loginUser = (async (req: Request, res: Response) => {
       })
     }
 
-    const matchPassword = comparedPassword(value.password, user?.password!)
+    const matchPassword = await comparedPassword(value.password, user.password)
     if (!matchPassword) {
       return res.status(400).json({
         status: 'failed',
@@ -96,6 +112,133 @@ export const loginUser = (async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(`ERR: login - route = ${error}`)
     return res.status(500).json({ status: 'failed', message: error })
+  }
+}) as RequestHandler
+
+export const getMe = (async (req: Request, res: Response) => {
+  try {
+    const user = await User.findOne({
+      attributes: ['uuid', 'username', 'name', 'bio', 'photo_profile', 'email'],
+      where: {
+        uuid: res.locals.user.uuid
+      }
+    })
+    if (!user) {
+      logger.error('ERR: getMe - route = not found')
+      return res.status(404).json({
+        status: 'failed',
+        message: 'User Not Found'
+      })
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: user
+    })
+  } catch (error) {
+    logger.error(`ERR: getMe - route = ${error}`)
+    return res.status(500).json({
+      status: 'success',
+      message: error
+    })
+  }
+}) as RequestHandler
+
+export const editProfile = (async (req: Request, res: Response) => {
+  const { error, value } = editProfileValidation(req.body)
+  if (error) {
+    logger.error(`ERR: edit profile - route = ${error.details}`)
+    return res.status(403).json({
+      status: 'failed',
+      message: error.details
+    })
+  }
+
+  try {
+    const user = await User.findOne({
+      where: {
+        uuid: res.locals.user.uuid
+      }
+    })
+    if (!user) {
+      logger.error('ERR: edit Profile - route = not found')
+      return res.status(404).json({
+        status: 'failed',
+        message: 'user not found'
+      })
+    }
+
+    if (req.file) {
+      unlinkImage(user.photo_profile)
+
+      const filename = saveImage(req.file.path, req.file.filename)
+
+      value.photo_profile = filename
+    }
+
+    await user.update(value)
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Successfully Edit Profile'
+    })
+  } catch (error) {
+    logger.error(`ERR: user - edit profile = ${error}`)
+    return res.status(500).json({
+      status: 'failed',
+      mesagge: error
+    })
+  }
+}) as RequestHandler
+
+export const changePassword = (async (req: Request, res: Response) => {
+  const { error, value } = changePasswordValidation(req.body)
+  if (error) {
+    logger.error(`ERR: edit profile - change password = ${error.details}`)
+    return res.status(403).json({
+      status: 'failed',
+      message: error.details
+    })
+  }
+
+  try {
+    const user = await User.findOne({
+      where: {
+        uuid: res.locals.user.uuid
+      }
+    })
+    if (!user) {
+      logger.error('ERR: edit Profile - route = not found')
+      return res.status(404).json({
+        status: 'failed',
+        message: 'user not found'
+      })
+    }
+
+    const matchPassword = await comparedPassword(value.password, user.password)
+    if (matchPassword) {
+      return res.status(400).json({
+        status: 'failed',
+        message: 'password cannot be the same'
+      })
+    }
+
+    const passwordHashed = await hashedPassword(value.password)
+
+    value.password = passwordHashed
+
+    await user.update(value)
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'password has been changed'
+    })
+  } catch (error) {
+    logger.error(`ERR: edit profile - change password = ${error}`)
+    return res.status(500).json({
+      status: 'success',
+      message: error
+    })
   }
 }) as RequestHandler
 
