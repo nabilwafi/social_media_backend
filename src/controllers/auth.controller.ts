@@ -22,7 +22,7 @@ export const registerUser = (async (req: Request, res: Response) => {
 
   if (!req.file) {
     logger.error('ERR: register - route = file not found')
-    res.status(403).json({
+    return res.status(403).json({
       status: 'failed',
       message: 'image is require'
     })
@@ -84,6 +84,7 @@ export const loginUser = (async (req: Request, res: Response) => {
     }
 
     const data: UserAttributes = {
+      id: user.id,
       uuid: user.uuid,
       username: user.username,
       email: user.email,
@@ -106,6 +107,7 @@ export const loginUser = (async (req: Request, res: Response) => {
     return res.status(200).json({
       status: 'success',
       data: {
+        user: data,
         accessToken
       }
     })
@@ -118,7 +120,16 @@ export const loginUser = (async (req: Request, res: Response) => {
 export const getMe = (async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({
-      attributes: ['uuid', 'username', 'name', 'bio', 'photo_profile', 'email'],
+      attributes: [
+        'id',
+        'uuid',
+        'username',
+        'name',
+        'bio',
+        'photo_profile',
+        'email'
+      ],
+      include: ['posts'],
       where: {
         uuid: res.locals.user.uuid
       }
