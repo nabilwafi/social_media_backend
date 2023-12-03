@@ -2,11 +2,21 @@ import { Request, Response, RequestHandler } from 'express'
 import logger from '../utils/logger'
 import Post from '../db/models/post.model'
 import { PostValidation } from '../validations/post.validation'
+import User from '../db/models/user.model'
+import Comment from '../db/models/comment.model'
 
 export const getAllPost = (async (req: Request, res: Response) => {
   try {
     const posts = await Post.findAll({
-      include: ['user', 'comments']
+      include: [
+        {
+          model: User,
+          attributes: {
+            exclude: ['password', 'refreshToken']
+          }
+        },
+        'comments'
+      ]
     })
 
     return res.status(200).json({
@@ -30,7 +40,20 @@ export const getPostById = (async (req: Request, res: Response) => {
       where: {
         uuid
       },
-      include: ['user', 'comments']
+      include: [
+        {
+          model: Comment,
+          include: [
+            {
+              model: User,
+              attributes: {
+                exclude: ['password', 'refreshToken']
+              }
+            }
+          ]
+        },
+        'user'
+      ]
     })
 
     return res.status(200).json({

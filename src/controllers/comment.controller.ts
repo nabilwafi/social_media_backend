@@ -2,6 +2,7 @@ import { Request, Response, RequestHandler } from 'express'
 import logger from '../utils/logger'
 import { CommentValidation } from '../validations/comment.validation'
 import Comment from '../db/models/comment.model'
+import User from '../db/models/user.model'
 
 export const getAllCommentsByPostId = (async (req: Request, res: Response) => {
   const { postId } = req.params
@@ -11,7 +12,15 @@ export const getAllCommentsByPostId = (async (req: Request, res: Response) => {
       where: {
         postId
       },
-      include: ['user', 'post']
+      include: [
+        {
+          model: User,
+          attributes: {
+            exclude: ['password', 'refreshToken']
+          }
+        },
+        'post'
+      ]
     })
 
     return res.status(200).json({
@@ -36,7 +45,15 @@ export const getCommentById = (async (req: Request, res: Response) => {
         uuid,
         postId
       },
-      include: ['user', 'post']
+      include: [
+        {
+          model: User,
+          attributes: {
+            exclude: ['password', 'refreshToken']
+          }
+        },
+        'post'
+      ]
     })
 
     return res.status(200).json({
